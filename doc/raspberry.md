@@ -80,7 +80,7 @@ Mosquitto configuration is stored in `mosquitto.conf`. To get details:
 
 By default, setting `allow_anonymous` is set to `false` meaning that only clients which provide their username are allowed to connect to the broker. Set it to `true` if necessary. In addition, setting `listener` must be set to the corresponding port number (`1883` by default). Otherwise you can only access the broker from localhost.
 
-So, add the following two lines to `/etc/mosquitto/mosquitto.conf`:
+So, [add the following two lines](http://www.steves-internet-guide.com/mosquitto-broker/) to `/etc/mosquitto/mosquitto.conf`:
 
 ```
 listener 1883
