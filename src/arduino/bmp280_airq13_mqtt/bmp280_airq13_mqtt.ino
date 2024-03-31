@@ -4,6 +4,8 @@
 #include "Seeed_BMP280.h"
 #include "Air_Quality_Sensor.h"
 #include <Wire.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
@@ -13,6 +15,12 @@ BMP280 bmp280;
 AirQualitySensor sensor(A0);
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
+
+// By default 'pool.ntp.org' is used with 60 seconds update interval and
+// no offset
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
+
 
 //const char broker[]  = "test.mosquitto.org";
 const IPAddress broker(192, 168, 178, 85);
@@ -74,6 +82,8 @@ void setup() {
   } else {
     Serial.println("Air Quality Sensor v1.3 init ERROR!");
   }
+
+  timeClient.begin();
 }
 
 void loop() {
@@ -92,11 +102,9 @@ void loop() {
     // save the last time a message was sent
     previousMillis = currentMillis;
 
-    //record random value from A0, A1 and A2
-    int Rvalue = analogRead(A0);
-    int Rvalue2 = analogRead(A1);
-    int Rvalue3 = analogRead(A2);
+    timeClient.update();
 
+    Serial.println(timeClient.getFormattedTime());
 
     //get temperature, print it and send via MQTT
     temperature = bmp280.getTemperature();
@@ -110,7 +118,8 @@ void loop() {
     Serial.println(topic1);
 
     mqttClient.beginMessage(topic1);
-    mqttClient.print(temperature);
+    mqttClient.print(timeClient.getFormattedTime() + ": " + String(temperature));
+    //mqttClient.print(temperature);
     mqttClient.endMessage();
 
     //get atmospheric pressure data, print it and send via MQTT

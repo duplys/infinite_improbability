@@ -7,3 +7,7 @@ Grove BMP 280 sensor and Grove Air Quality Sensor v1.3 require libraries to work
 ## Transmitting sensor data using MQTT
 
 [This Arduino tutorial](https://docs.arduino.cc/tutorials/uno-wifi-rev2/uno-wifi-r2-mqtt-device-to-device/) describes how to transmit data using MQTT.
+
+## Timestamp for MQTT data
+
+To add a timestamp to MQTT messages, the [NTPClient library](https://www.arduino.cc/reference/en/libraries/ntpclient/) can be used.
