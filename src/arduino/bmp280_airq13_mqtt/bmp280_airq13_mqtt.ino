@@ -87,6 +87,7 @@ void setup() {
 }
 
 void loop() {
+  unsigned long epoch_time;
   float temperature;
   float pressure;
   int air_quality_value;
@@ -103,74 +104,46 @@ void loop() {
     previousMillis = currentMillis;
 
     timeClient.update();
-
-    Serial.println(timeClient.getFormattedTime());
+    epoch_time = timeClient.getEpochTime();
 
     //get temperature, print it and send via MQTT
     temperature = bmp280.getTemperature();
-    Serial.print("Temp: ");
-    Serial.print(temperature);
-    Serial.println("C"); // The unit for  Celsius because original arduino don't support speical symbols
-
-    Serial.print("Sending ");
-    Serial.print(temperature);
-    Serial.print(" to topic ");
-    Serial.println(topic1);
-
+    Serial.println("Sending: {\"epoch_time\": " + String(epoch_time) + ", \"temperature\": " + String(temperature) + "}" + " to topic " + String(topic1));
     mqttClient.beginMessage(topic1);
-    mqttClient.print(timeClient.getFormattedTime() + ": " + String(temperature));
-    //mqttClient.print(temperature);
+    mqttClient.print("{\"epoch_time\": " + String(epoch_time) + ", \"temperature\": " + String(temperature) + "}");
     mqttClient.endMessage();
 
     //get atmospheric pressure data, print it and send via MQTT
     pressure = bmp280.getPressure();
-    Serial.print("Pressure: ");
-    Serial.print(pressure);
-    Serial.println("Pa");
-
-    Serial.print("Sending ");
-    Serial.print(pressure);
-    Serial.print(" to topic ");
-    Serial.println(topic2);
-
+    Serial.println("Sending: {\"epoch_time\": " + String(epoch_time) + ", \"pressure\": " + String(pressure) + "}" + " to topic " + String(topic2));
     mqttClient.beginMessage(topic2);
-    mqttClient.print(pressure);
+    mqttClient.print("{\"epoch_time\": " + String(epoch_time) + ", \"pressure\": " + String(pressure) + "}");
     mqttClient.endMessage();
 
-    //print altitude calculated from pressure
-    Serial.print("Calculated altitude: ");
-    Serial.print(bmp280.calcAltitude(pressure));
-    Serial.println("m");
+    //following the fact-based data model, we don't send altitude because it's not a raw data
+    //but rather a number calculated using bmp280.calcAltitude(pressure)
 
     //get air quality value, print it and send via MQTT
     air_quality_value = sensor.getValue();
-    Serial.print("Air Quality Sensor v1.3 value: ");
-    Serial.println(air_quality_value);
-
-    Serial.print("Sending ");
-    Serial.print(air_quality_value);
-    Serial.print(" to topic ");
-    Serial.println(topic3);
-
+    Serial.println("Sending: {\"epoch_time\": " + String(epoch_time) + ", \"air_quality_value\": " + String(air_quality_value) + "}" + " to topic " + String(topic3));
     mqttClient.beginMessage(topic3);
-    mqttClient.print(air_quality_value);
+    mqttClient.print("{\"epoch_time\": " + String(epoch_time) + ", \"air_quality_value\": " + String(air_quality_value) + "}");
     mqttClient.endMessage();
 
     //print air quality level and send it via MQTT
-
     mqttClient.beginMessage(topic4);
     if (quality == AirQualitySensor::FORCE_SIGNAL) {
-      Serial.println("High pollution! Force signal active");
-      mqttClient.print("High pollution! Force signal active");
+      Serial.println("Sending: {\"epoch_time\": " + String(epoch_time) + ", \"air_quality_level\": \"High pollution! Force signal active\"} to topic " + String(topic4));
+      mqttClient.print("{\"epoch_time\": " + String(epoch_time) + ", \"air_quality_level\": \"High pollution! Force signal active\"}");
     } else if (quality == AirQualitySensor::HIGH_POLLUTION) {
-      Serial.println("High pollution!");
-      mqttClient.print("High pollution!");
+      Serial.println("Sending: {\"epoch_time\": " + String(epoch_time) + ", \"air_quality_level\": \"High pollution!\"} to topic " + String(topic4));
+      mqttClient.print("{\"epoch_time\": " + String(epoch_time) + ", \"air_quality_level\": \"High pollution!\"}");
     } else if (quality == AirQualitySensor::LOW_POLLUTION) {
-      Serial.println("Low pollution!");
-      mqttClient.print("Low pollution!");
+      Serial.println("Sending: {\"epoch_time\": " + String(epoch_time) + ", \"air_quality_level\": \"Low pollution!\"} to topic " + String(topic4));
+      mqttClient.print("{\"epoch_time\": " + String(epoch_time) + ", \"air_quality_level\": \"Low pollution!\"}");
     } else if (quality == AirQualitySensor::FRESH_AIR) {
-      Serial.println("Fresh air");
-      mqttClient.print("Fresh air");
+      Serial.println("Sending: {\"epoch_time\": " + String(epoch_time) + ", \"air_quality_level\": \"Fresh air\"} to topic " + String(topic4));
+      mqttClient.print("{\"epoch_time\": " + String(epoch_time) + ", \"air_quality_level\": \"Fresh air\"}");
     }
     mqttClient.endMessage();
 
